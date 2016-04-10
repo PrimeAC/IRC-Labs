@@ -26,7 +26,3 @@ while True:
     elif i == sock:
       (msg,addr) = sock.recvfrom(1024)
       print("Message received from server:", msg.decode())
-
-
-
-

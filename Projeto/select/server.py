@@ -50,7 +50,6 @@ while True:
   cmds = msg.decode().split()
   if(cmds[0]=="IAM"):
     register_client(cmds[1],addr)
-    print(addr)
   elif(cmds[0]=="HELLO"):
     respond_hello(addr)
   elif(cmds[0]=="HELLOTO"):

@@ -2,7 +2,7 @@ import socket
 import sys
 import select
 
-SERVER_PORT = 12001
+SERVER_PORT = 12000
 SERVER_IP   = '127.0.0.1'
 
 sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -10,7 +10,13 @@ sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 # o select quer ficar a espera de ler o socket e ler do stdin (consola)
 inputs = [sock, sys.stdin]
 
+#FUNCOES DE CADA OPERACAO
 
+def acknowledge():
+    respond_msg = "OK" + "\n"
+    sock.sendto(respond_msg.encode(), (SERVER_IP, SERVER_PORT)) 
+
+#CORPO PRINCIPAL
 while True:
   print("Input message to server below:")
   ins, outs, exs = select.select(inputs,[],[])

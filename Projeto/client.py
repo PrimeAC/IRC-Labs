@@ -12,8 +12,8 @@ inputs = [sock, sys.stdin]
 
 #FUNCOES DE CADA OPERACAO
 
-def acknowledge():
-    respond_msg = "OK" + "\n"
+def acknowledge(dest):
+    respond_msg = "OK" + dest + "\n"
     sock.sendto(respond_msg.encode(), (SERVER_IP, SERVER_PORT)) 
 
 #CORPO PRINCIPAL
@@ -31,4 +31,9 @@ while True:
     # i == sock - o servidor enviou uma mensagem para o socket
     elif i == sock:
       (msg,addr) = sock.recvfrom(1024)
-      print("Message received from server:", msg.decode())
+      cmds = msg.split()
+      if cmds[0] == "INV":
+        print cmds[2]
+        acknowledge(cmds[2])
+      
+      print "Message received from server:", cmds[0]

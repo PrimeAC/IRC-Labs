@@ -55,7 +55,11 @@ def return_list(addr):
 		respond_msg = "LSTR:"
 
 		for key in status:
-			respond_msg = respond_msg + (key + ":" + status[key] + ";")
+			print("key")
+			print(key)
+			print("status")
+			print(status[key])
+			respond_msg = respond_msg + key + ":" + status[key] + ";"
 
 		server.sendto(respond_msg.encode(),addr)
 
@@ -66,7 +70,8 @@ def invite(addr, dest):
 	if status[dest]=="available":
 		daddr = addrs[dest]
 		status[addr]="occupied"
-		respond_msg="INV " + clients[addr]
+		respond_msg="INV " + addr + " "+ dest
+		print respond_msg
 		server.sendto(respond_msg.encode(),daddr)
 
 	else:
@@ -98,7 +103,7 @@ def respond_error(addr):
 
 while True:
   (msg,addr) = server.recvfrom(1024)
-  cmds = msg.decode().split()
+  cmds = msg.split()
   if(cmds[0]=="REG"):
     register_client(cmds[1],addr)
   elif(cmds[0]=="EXIT"):
@@ -106,7 +111,7 @@ while True:
   elif(cmds[0]=="LST"):
     return_list(addr)
   elif(cmds[0]=="INV"):
-    invite(addr, cmds[1])
+    invite(cmds[1], cmds[2])
   elif(cmds[0]=="INVR"):
   	invite_response(addr, cmds[1], cmds[2])
   elif(cmds[0]=="KILLSERVER"):

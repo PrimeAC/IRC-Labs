@@ -21,8 +21,11 @@ status = {} # dict: nome -> estado. Ex: status["user"]=("occupied" or "available
 
 #FUNCOES DE CADA OPERACAO
 def acknowledge(addr):
-	respond_msg = "OK" + "\n"
-	server.sendto(respond_msg.encode(),addr) 
+	if addr == "server":
+		print("OK\n")
+	else:
+		respond_msg = "OK" + "\n"
+		server.sendto(respond_msg.encode(), addrs[cmds[1]]) 
 
 def error(message,addr):
 	respond_msg = "NOK:" + message + "\n" 
@@ -52,13 +55,9 @@ def remove_client(addr):
 
 def return_list(addr):
 	if addr in clients:
-		respond_msg = "LSTR:"
+		respond_msg = "LSTR: "
 
 		for key in status:
-			print("key")
-			print(key)
-			print("status")
-			print(status[key])
 			respond_msg = respond_msg + key + ":" + status[key] + ";"
 
 		server.sendto(respond_msg.encode(),addr)
@@ -69,7 +68,6 @@ def return_list(addr):
 def invite(addr, dest):
 	if status[dest]=="available":
 		daddr = addrs[dest]
-		status[addr]="occupied"
 		respond_msg="INV " + addr + " "+ dest
 		print respond_msg
 		server.sendto(respond_msg.encode(),daddr)
@@ -83,12 +81,12 @@ def invite(addr, dest):
 def invite_response(addr, dest, reply):
 	if reply=="accept":
 
-		if status[clients[addr]]=="occupied":
-			respond_msg="INVR " + clients[addr] + " rejected"
-			server.sendto(respond_msg.encode(), addrs[dest])
+		if status[dest]=="occupied":
+			error("Client no longer available", addr)
 
 		else:
 			status[clients[addr]]="occupied"
+			status[dest]="occupied"
 			respond_msg="INVR " + clients[addr] + " accept"
 			server.sendto(respond_msg.encode(), addrs[dest])
 	else:
@@ -113,7 +111,10 @@ while True:
   elif(cmds[0]=="INV"):
     invite(cmds[1], cmds[2])
   elif(cmds[0]=="INVR"):
-  	invite_response(addr, cmds[1], cmds[2])
+  	print(cmds[3])
+  	invite_response(addr, cmds[2], cmds[3])
+  elif(cmds[0]=="OK"):
+  	acknowledge(cmds[1])
   elif(cmds[0]=="KILLSERVER"):
     break
   else:

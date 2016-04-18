@@ -87,10 +87,10 @@ def invite_response(addr, dest, reply):
 		else:
 			status[clients[addr]]="occupied"
 			status[dest]="occupied"
-			respond_msg="INVR " + clients[addr] + " accept"
+			respond_msg="INVR " + clients[addr] + "accept"
 			server.sendto(respond_msg.encode(), addrs[dest])
 	else:
-		respond_msg="INVR " + clients[addr] + " rejected"
+		respond_msg="INVR " + clients[addr] + "rejected"
 		server.sendto(respond_msg.encode(), addrs[dest])
 
 def respond_error(addr):

@@ -9,16 +9,16 @@ import socket
 
 #INICIALIZACAO
 
-SERVER_PORT=12000
+SERVER_PORT=5005
 
 server = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-server.bind(('',12000))
+server.bind(('',5005))
 
 addrs   = {} # dict: nome -> endereco. Ex: addrs["user"]=('127.0.0.1',17234)
 clients = {} # dict: endereco -> nome. Ex: clients[('127.0.0.1',17234)]="user"
 status = {} # dict: nome -> estado. Ex: status["user"]=("occupied" or "available")
 
-
+flag=0
 #FUNCOES DE CADA OPERACAO
 def acknowledge(addr):
 	if addr == "server":
@@ -28,8 +28,9 @@ def acknowledge(addr):
 		server.sendto(respond_msg.encode(), addrs[cmds[1]]) 
 
 def error(message,addr):
-	respond_msg = "NOK:" + message + "\n" 
-  	server.sendto(respond_msg.encode(),addr)
+	print("msg:"+message)
+	respond_msg = "NOK: " + message 
+  	server.sendto(respond_msg,addr)
 
 def register_client(name,addr):
 	# se o nome nao existe e o endereco nao esta a ser usado
@@ -58,6 +59,8 @@ def return_list(addr):
 		respond_msg = "LSTR: "
 
 		for key in status:
+			print "key ",key
+			print "status ", status[key]
 			respond_msg = respond_msg + key + ":" + status[key] + ";"
 
 		server.sendto(respond_msg.encode(),addr)
@@ -66,42 +69,57 @@ def return_list(addr):
 		error("Access Denied!", addr)
 
 def invite(addr, dest):
-	if status[dest]=="available":
-		daddr = addrs[dest]
-		respond_msg="INV " + addr + " "+ dest
-		print respond_msg
-		server.sendto(respond_msg.encode(),daddr)
+	if dest in addrs and dest != clients[addr]:
+		if status[clients[addr]] != "occupied":
+			if status[dest]=="available":
+				status[clients[addr]]="occupied"
+				daddr = addrs[dest]
+				respond_msg="INV " + clients[addr] + " "+ dest
+				print respond_msg
+				server.sendto(respond_msg.encode(),daddr)
 
-	else:
-		if dest in addrs:
-			error("User not available", addr)
+			else:
+				error("User not available", addr)
+				
 		else:
-			error("User does not exist", addr)
+			error("Can't send more invites", addr)
+					
+	else:
+		error("User does not exist", addr)
 
 def invite_response(addr, dest, reply):
 	if reply=="accept":
-
-		if status[dest]=="occupied":
-			error("Client no longer available", addr)
-
-		else:
-			status[clients[addr]]="occupied"
-			status[dest]="occupied"
-			respond_msg="INVR " + clients[addr] + "accept"
-			server.sendto(respond_msg.encode(), addrs[dest])
+		flag = 1
+		status[clients[addr]]="occupied"
+		respond_msg="INVR " + clients[addr] + " accepted"
+		server.sendto(respond_msg.encode(), addrs[dest])
 	else:
-		respond_msg="INVR " + clients[addr] + "rejected"
+		status[dest]="available"
+		respond_msg="INVR " + clients[addr] + " rejected"
 		server.sendto(respond_msg.encode(), addrs[dest])
 
 def respond_error(addr):
 	respond_msg = "INVALID MESSAGE\n"
 	server.sendto(respond_msg.encode(),addr)
 
+def play(src, dest, pos ):
+	msg = "MOV "+ src + " " + dest + " "+ pos
+	server.sendto(msg.encode(),addrs[dest])
+
+def endGame(src,dest, pos, msg):
+	status[src] = "available"
+	status[dest] = "available"
+	msg = "END "+src+ " " + dest +" "+ pos+" "+msg
+	server.sendto(msg.encode(),addrs[dest])
+
+
+
 #CORPO PRINCIPAL
 
 while True:
   (msg,addr) = server.recvfrom(1024)
   cmds = msg.split()
+  print cmds[0];
   if(cmds[0]=="REG"):
     register_client(cmds[1],addr)
   elif(cmds[0]=="EXIT"):
@@ -109,12 +127,15 @@ while True:
   elif(cmds[0]=="LST"):
     return_list(addr)
   elif(cmds[0]=="INV"):
-    invite(cmds[1], cmds[2])
+    invite(addr, cmds[2])
   elif(cmds[0]=="INVR"):
-  	print(cmds[3])
-  	invite_response(addr, cmds[2], cmds[3])
+   	invite_response(addr, cmds[2], cmds[3])
   elif(cmds[0]=="OK"):
   	acknowledge(cmds[1])
+  elif(cmds[0]=="MOV"):
+    play(cmds[1],cmds[2],cmds[3])
+  elif(cmds[0]=="END"):
+    endGame(cmds[1],cmds[2],cmds[3],cmds[4])
   elif(cmds[0]=="KILLSERVER"):
     break
   else:

@@ -1,7 +1,7 @@
 # Introduction to Computer Networks (Project 2015/2016)
 
 # Synopsis
-This is a project for school written in Python that enables you to play a game of Tic-Tac-Toe locally or remotely (between machines).
+This is a project for school written in Python that enables you to play a game of Tic-Tac-Toe locally or online.
 
 # Installation
 No Installation required.
